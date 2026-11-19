@@ -94,7 +94,6 @@ const rand = Math.random();
 
 function isOverflow() {
     if (!modalBox) return;
-    console.log('Modal.isOverflow', modalBox.clientHeight);
 
     const viewportHeight = window.innerHeight;
     const modalHeight = modalBox.clientHeight;
@@ -103,7 +102,6 @@ function isOverflow() {
 
 function checkOverflow() {
     if (!modal) return;
-    console.log('%cModal.checkOverflow', 'background-color:green');
 
     // only if the modal is currently shown
     if (modal.classList.contains('modal-visible')) {
@@ -132,7 +130,6 @@ const focusableSelector = `
 export function appendFocusable(ifdoc?: Document) {
 
     if (!ifdoc) return;
-    console.log('%cModal.appendFocusable', 'background-color:green', ifdoc);
 
     const iframeFocusableEls = Array.from(
         ifdoc?.querySelectorAll<HTMLElement>(focusableSelector)
@@ -145,13 +142,11 @@ export function appendFocusable(ifdoc?: Document) {
         ...iframeFocusableEls,
         ...focusableEls.slice(1)
     ];
-    console.log('%cfocusableEls', 'background-color:orange', focusableEls);
 
     ifdoc.addEventListener('keydown', trapFocus);
 }
 
 function getActiveElement() {
-    console.log('%cModal.getActiveElement', 'background-color:green', document.activeElement);
 
     if (document.activeElement instanceof HTMLIFrameElement) {
 
@@ -165,21 +160,15 @@ function getActiveElement() {
 }
 
 function trapFocus(event) {
-    console.log('%ctrapFocus', 'background-color:green', event, what);
 
     if (hidden) return false;
 
     if (event.key !== 'Tab') return false;
 
     if (!focusableEls.length) return false;
-
-    console.log('%cModal.trapFocus', 'background-color:green', event);
     const activeEl = getActiveElement();
-    console.log('%cactiveEl', 'background-color:hotpink', activeEl);
     const first = focusableEls[0];
     const last = focusableEls[focusableEls.length - 1];
-    console.log('%cfirst', 'background-color:brown', first);
-    console.log('%clast', 'background-color:brown', last);
 
     if (event.shiftKey) {
         if (activeEl === first || activeEl === modal) {
@@ -199,7 +188,6 @@ function trapFocus(event) {
  * standard JavaScript behavior automatically discards duplicate listeners.
  */
 function keyboardHandler(event) {
-    console.log('%cModal.keyboardHandler', 'background-color:green', event, what);
 
     if (hidden)
         return false;
@@ -235,13 +223,11 @@ function getDocumentWidth(doc) {
 }
 
 close = (event?: Event) => {
-    console.log('%cModal.close', 'background-color:green', event, what, name);
 
     if (!modal) return;
     if (isBusy) return;
 
     if (hidden) {
-        console.log('%c%s hidden is %s, not close return', 'background-color:brown', what, hidden);
         return;
     }
 
@@ -259,24 +245,19 @@ close = (event?: Event) => {
 
     const current = $modals.pop(); // thrown away current modal
     if (current) {
-        console.log('%cthrown away current modal', 'background-color:blue', current.getName());
     }
-    console.log('%c$modals.length', 'background-color:purple', $modals.length);
 
     const next = $modals.findLast((modal) => {
         return modal.ishidden() && !modal.isdisabled();
     });
 
     if (next) {
-        console.log('%cnext', 'background-color:purple', next.getName());
         next.show();
     } else {
-        console.log('%c$modals[$modals.length - 1]', 'background-color:blue', $modals[$modals.length - 1]);
         document.body.classList.remove('body-modal-enabled');
         document.body.style.removeProperty('top');
 
         const scrollPosition0 = $modals.length ? $modals[0].scrollPosition() : _scrollPosition;
-        console.log('%cscrollPosition0', 'background-color:blue', scrollPosition0);
 
         window.scrollTo({
             top: scrollPosition0,
@@ -306,7 +287,6 @@ close = (event?: Event) => {
     document.removeEventListener('keydown', trapFocus);
 
     if (prevActiveEl) {
-        console.log('%cprevActiveEl.focus()', 'background-color:purple', prevActiveEl);
         prevActiveEl.focus();
     }
 
@@ -316,20 +296,16 @@ let t1_open: number | null;
 let t1_fitsize: number | null;
 
 open = (origin, url, params) => {
-    console.log('%cModal.open', 'background-color:green', origin, url, params, what, name);
 
     if (!modal) return;
 
     prevActiveEl = getActiveElement() as HTMLElement;
-    console.log('%cprevActiveEl', 'background-color:purple', prevActiveEl);
 
     if (!hidden) {
-        console.log('%c%s hidden %s, not open', 'background-color:brown', what, hidden);
         return;
     }
 
     if ($modals.length) {
-        console.log('%chiding last modal first', 'background-color:purple', $modals[$modals.length - 1]);
         $modals[$modals.length - 1].hide();
     }
 
@@ -368,7 +344,6 @@ open = (origin, url, params) => {
             modal.querySelectorAll<HTMLElement>(focusableSelector)
         )
         .filter(el => !el.hidden);
-        console.log('%cfocusableEls', 'background-color:orange', focusableEls);
 
         document.addEventListener('keydown', keyboardHandler);
         document.addEventListener('keydown', trapFocus);
@@ -387,7 +362,6 @@ open = (origin, url, params) => {
 export function fitSize() {
 
     if (!modalBox) return;
-    console.log('%cModal.fitSize()', 'background-color:green');
 
     iframeEl = contentEl.querySelector('iframe');
 
@@ -396,8 +370,6 @@ export function fitSize() {
 
     const minHeight = modalBox.clientHeight;
     const minWidth = modalBox.clientWidth;
-    console.log('%cminHeight', 'background-color:brown', minHeight);
-    console.log('%cminWidth', 'background-color:brown', minWidth);
 
     setSize('100%', '100%');
 
@@ -413,11 +385,6 @@ export function fitSize() {
         const toolbarHeight = toolbarEl.clientHeight;
         const toolbarWidth = toolbarEl.clientWidth;
         const footerHeight = footerEl.clientHeight;
-        console.log('%cheaderHeight', 'background-color:purple', headerHeight);
-        console.log('%ctoolbarHeight', 'background-color:purple', toolbarHeight);
-        console.log('%cfooterHeight', 'background-color:purple', footerHeight);
-        console.log('%cheaderWidth', 'background-color:purple', headerWidth);
-        console.log('%ctoolbarWidth', 'background-color:purple', toolbarWidth);
 
         const loader = contentEl.firstElementChild;
 
@@ -426,8 +393,6 @@ export function fitSize() {
         }
 
         if (iframeEl) {
-
-            console.log('%ciframeEl.src', 'background-color:blue', iframeEl.src);
             if (iframeEl.src == 'about:blank') return;
 
             const ifdoc = iframeEl.contentDocument
@@ -437,8 +402,6 @@ export function fitSize() {
 
             ifdocHeight = getDocumentHeight(ifdoc);
             ifdocWidth = getDocumentWidth(ifdoc);
-            console.log('%cifdocHeight', 'background-color:brown', ifdocHeight);
-            console.log('%cifdocWidth', 'background-color:brown', ifdocWidth);
 
             iframeEl.height = String(ifdocHeight);
             iframeEl.width = String(ifdocWidth);
@@ -447,20 +410,15 @@ export function fitSize() {
 
         const fullHeight = modalBox.clientHeight;
         const fullWidth = modalBox.clientWidth;
-        console.log('%cfullHeight', 'background-color:brown', fullHeight);
-        console.log('%cfullWidth', 'background-color:brown', fullWidth);
 
         const contentHeight = contentEl.clientHeight;
         const contentWidth = contentEl.clientWidth;
-        console.log('%ccontentHeight', 'background-color:brown', contentHeight);
-        console.log('%ccontentWidth', 'background-color:brown', contentWidth);
 
         const totalHeight = headerHeight
             + toolbarHeight
             + contentHeight
             + footerHeight
             + 0;
-        console.log('%ctotalHeight', 'background-color:brown', totalHeight);
 
         const totalWidth = Math.max(
                 headerWidth,
@@ -468,7 +426,6 @@ export function fitSize() {
                 contentWidth,
                 footerHeight
             );
-        console.log('%ctotalWidth', 'background-color:brown', totalWidth);
 
         const freeHeight = fullHeight
             - headerHeight
@@ -479,12 +436,9 @@ export function fitSize() {
             - parseFloat(contentStyles.paddingTop)
             - parseFloat(contentStyles.paddingBottom)
             - 0;
-        console.log('%cfreeHeight', 'background-color:blue', freeHeight);
 
         isVScroll = totalHeight > fullHeight;
         isHScroll = totalWidth > fullWidth;
-        console.log('%cisVScroll', 'background-color:hotpink', isVScroll);
-        console.log('%cisHScroll', 'background-color:hotpink', isHScroll);
 
         if (isVScroll) {
             contentEl.style.height = (freeHeight) + 'px';
@@ -508,39 +462,32 @@ export function fitSize() {
 }
 
 export function setSize(h: string | number | null, w: string | number | null) {
-    console.log('%cModal.setSize', 'background-color:green', h, w, what);
     height = h;
     width = w;
 }
 
 export function setDisabled(v) {
-    console.log('%cModal.setDisabled', 'background-color:green', v, what);
     disabled = v;
 }
 
 export function isdisabled() {
-    console.log('%cModal.isdisabled', 'background-color:green', what, disabled);
     return disabled === true;
 }
 
 export function ishidden() {
-    console.log('%cModal.ishidden', 'background-color:green', what, hidden);
     return hidden === true;
 }
 
 export function isopened() {
-    console.log('%cModal.isopened', 'background-color:green', what, opened);
     return opened === true;
 }
 
 export function scrollPosition() {
-    console.log('%cModal.scrollPosition', 'background-color:green', what);
     return _scrollPosition;
 }
 
 export function hide() {
     if (!modal) return;
-    console.log('%cModal.hide', 'background-color:green', name);
     isBusy = false;
     hidden = true;
     modal.hidden = true;
@@ -549,7 +496,6 @@ export function hide() {
 
 export function show() {
     if (!modal) return;
-    console.log('%cModal.show', 'background-color:green', what);
     hidden = false;
     modal.hidden = false;
 
@@ -573,8 +519,6 @@ let iframeEl: HTMLIFrameElement | null;
 onMount(() => {
 
     if (!modalBox) return;
-    console.log('%cModal.onMount', 'background-color:green');
-    console.log('%cmodal', 'background-color:purple', modal);
 
     headerEl = modalBox.children[0] as HTMLElement;
     toolbarEl = modalBox.children[1] as HTMLElement;
@@ -587,7 +531,6 @@ onMount(() => {
 });
 
 $effect(() => {
-    console.log('%cModal.$effect', 'background-color:green')
     checkOverflow();
 });
 
@@ -613,25 +556,6 @@ $effect(() => {
             class:isVScroll
             class:isHScroll
         >
-            <!-- Modal.svelte -->
-            <!-- $modals.length: {$modals.length}, -->
-            <!-- _scrollPosition: {_scrollPosition}, -->
-            <!-- ariadescribedby: {ariadescribedby}, -->
-            <!-- arialabelledby: {arialabelledby}, -->
-            <!-- disabled: {disabled}, -->
-            <!-- focusableEls:{focusableEls}, -->
-            <!-- height: {height}, -->
-            <!-- hidden: {hidden}, -->
-            <!-- hideXClose: {hideXClose},{typeof hideXClose}, -->
-            <!-- isHScroll: {isHScroll}, -->
-            <!-- isVScroll: {isVScroll}, -->
-            <!-- modal: {modal}, -->
-            <!-- modalBox: {modalBox}, -->
-            <!-- opened: {opened}, -->
-            <!-- prevActiveEl:{prevActiveEl}, -->
-            <!-- rand: {rand}, -->
-            <!-- width0: {width0}, -->
-            <!-- width: {width}, -->
 
             {#if !hideXClose}
             <button type="button"

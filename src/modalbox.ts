@@ -2,7 +2,6 @@ import { mount } from 'svelte';
 import ModalBox from './ModalBox.svelte';
 
 document.querySelectorAll<HTMLElement>('modalbox').forEach((ele, i) => {
-    console.log('%cInitializing ModalBox...', 'background-color:green', ele, ele.dataset);
 
     let name = ele.dataset.name ||  "modalbox_" + i;
 
@@ -22,7 +21,5 @@ document.querySelectorAll<HTMLElement>('modalbox').forEach((ele, i) => {
             width: ele.dataset['width']
         }
     });
-
-    console.log('%cwindow[%s]', 'background-color:purple', name);
     // window[name].open();
 });
