@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ModalBox</title>
+    <link rel="shortcut icon" href="#">
+    <!-- <link type="text/css" rel="stylesheet" href="http://localhost:11736/clientlib-site/css/clientlib-uncss.v2.css"> -->
+    <!-- <link type="text/css" rel="stylesheet" href="http://localhost:11736/clientlib-site/css/rsvp2.css"> -->
+    <!-- <link type="text/css" rel="stylesheet" href="http://localhost:11736/css/event2.css"> -->
+    <!-- <link type="text/css" rel="stylesheet" href="http://localhost:11736/css/grid2.css"> -->
+    <!-- <link type="text/css" rel="stylesheet" href="http://localhost:11736/css/cms2.css"> -->
+    <!-- <link type="text/css" rel="stylesheet" href="http://localhost:11736/css/flex2.css"> -->
+</head>
+
+<body>
+    <form method="post" action="./">
+        <div style="height:100px"></div>
+
+        <button type="button" class="btn2 btn2-action" onclick="modalbox1.open()">modalbox1.open()</button>
+        <button type="button" class="btn2 btn2-action" onclick="modalbox2.open()">modalbox2.open()</button>
+        <button type="button" class="btn2 btn2-action" onclick="modalbox3.open('iframe.html', {})">modalbox3.open('iframe.html', {})</button>
+        <button type="button" class="btn2 btn2-action" onclick="modalbox4.open()">modalbox4.open()</button>
+        <!-- <button type="button" class="btn2 btn2-action" onclick="modalbox1.setSize(400,400)">modalbox1.setSize(400,400)</button> -->
+
+        <modalbox
+            data-name="modalbox1"
+            data-aria-labelledby="id01"
+            data-width="500"
+            data-hide-foot-close="false"
+            data-header-items="1"
+            hidden
+        >
+            <h1 id="id01">ModalBox1</h1>
+            <p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since 1966, when designers at Letraset and James Mosley, the librarian at St Bride Printing Library in London, took a 1914 Cicero translation and scrambled it to make dummy text for Letraset's Body Type sheets. It has survived not only many decades, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised thanks to these sheets and more recently with desktop publishing software like Aldus PageMaker and Microsoft Word including versions of Lorem Ipsum.</p>
+            <button type="button" class="btn2 btn2-action" onclick="modalbox2.open()">modalbox2.open()</button>
+        </modalbox>
+
+        <modalbox
+            data-name="modalbox2"
+            data-aria-labelledby="id02"
+            data-hide-foot-close="false"
+            data-header-items="1"
+            data-height="500"
+            hidden
+        >
+            <h1 id="id02">ModalBox2</h1>
+            <p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since 1966, when designers at Letraset and James Mosley, the librarian at St Bride Printing Library in London, took a 1914 Cicero translation and scrambled it to make dummy text for Letraset's Body Type sheets. It has survived not only many decades, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised thanks to these sheets and more recently with desktop publishing software like Aldus PageMaker and Microsoft Word including versions of Lorem Ipsum.</p>
+            <button type="button" class="btn2 btn2-action" onclick="modalbox3.open('iframe.html', {})">modalbox3.open('iframe.html', {})</button>
+        </modalbox>
+
+        <modalbox
+            data-name="modalbox3"
+            data-aria-labelledby="id03"
+            data-hide-foot-close="false"
+            data-header-items="1"
+            data-width="100%"
+            hidden
+        >
+            <h1 id="id03">ModalBox3</h1>
+            <iframe
+                title="Inline Frame"
+                frameborder="0"
+                scrolling="no"
+                width="100%"
+            >
+            </iframe>
+        </modalbox>
+
+        <modalbox
+            data-name="modalbox4"
+            data-aria-labelledby="id04"
+            data-hide-x-close="true"
+            data-disabled-escape="true"
+            data-width="300"
+            hidden
+        >
+            <h1 id="id05">ModalBox4</h1>
+            <p id="id05">
+                <span class="loading" aria-hidden="true"></span>
+                <span role="status">Loading, please wait.</span>
+            </p>
+        </modalbox>
+
+    </form>
+
+    <script type="module">
+    import "../src/assets/common.scss";
+    import "../src/assets/tingle.scss";
+    import "../src/modalbox";
+    </script>
+
+    <script>
+    function showMessage(msg) {
+        console.log('child said', msg);
+    }
+
+    </script>
+
+</body>
+
+</html>
