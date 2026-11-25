@@ -2,11 +2,17 @@
 import type ModalBox from './ModalBox.svelte';
 import type { Snippet } from 'svelte';
 
+export type ModalParams = {
+    name?: string;
+    title?: string;
+    [key: string]: unknown;
+};
+
 export type TModalClose = (event?: Event) => void;
 export type TModalOpen = (
     origin: ModalBox,
     url?: string,
-    params?: unknown
+    params?: ModalParams
 ) => void;
 export type TModalHide = (event?: Event) => void;
 export type TModalShow = (event?: Event) => void;
@@ -15,10 +21,10 @@ export type TonClosed = () => void;
 export type TonOpened = () => void;
 
 type Props = {
-    header: Snippet<[number, number]>;
+    header?: Snippet<[number, number]>;
     toolbar?: Snippet;
-    content: Snippet;
-    footer: Snippet;
+    content?: Snippet;
+    footer?: Snippet;
 
     arialabelledby?: string;
     ariadescribedby?: string;
@@ -47,7 +53,7 @@ type Props = {
 
 <script lang="ts">
 import { onMount } from 'svelte';
-import { modals } from './stores';
+import { modals, uuid } from './stores';
 
 let {
     header,
@@ -80,6 +86,7 @@ let {
 }: Props = $props();
 
 let _scrollPosition: number;
+let height0 = height;
 let width0 = width;
 let disabled = false;
 let hidden = true;
@@ -87,12 +94,37 @@ let opened = false;
 let isBusy: boolean;
 let modal = $state<HTMLDivElement>();
 let modalBox = $state<HTMLDivElement>();
-let isHScroll = $state(false);
 let isVScroll = $state(false);
+let minheight = $state();
 
-const rand = Math.random();
+let headerStyles: CSSStyleDeclaration;
+let contentStyles: CSSStyleDeclaration;
+
+const uid = uuid();
+
+function getContentWidth(node: Node) {
+
+    const clone = node.cloneNode(true) as HTMLElement;
+
+    Object.assign(clone.style, {
+        position: 'absolute',
+        visibility: 'hidden',
+        width: 'max-content',
+        maxWidth: 'none',
+        whiteSpace: 'nowrap'
+    });
+
+    document.body.append(clone);
+
+    const width = clone.getBoundingClientRect().width;
+
+    clone.remove();
+
+    return width;
+}
 
 function isOverflow() {
+
     if (!modalBox) return;
 
     const viewportHeight = window.innerHeight;
@@ -101,6 +133,7 @@ function isOverflow() {
 }
 
 function checkOverflow() {
+
     if (!modal) return;
 
     // only if the modal is currently shown
@@ -113,9 +146,6 @@ function checkOverflow() {
     }
 }
 
-let prevActiveEl: HTMLElement | null | undefined;
-let focusableEls: Array<HTMLElement>;
-
 const focusableSelector = `
     a[href]:not([tabindex^="-"]):not([disabled]),
     a[onclick]:not([tabindex^="-"]):not([disabled]),
@@ -126,6 +156,21 @@ const focusableSelector = `
     [tabindex]:not([tabindex^="-"]):not([disabled])
 `;
 
+export const delay = (ms: number) =>
+    new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+export async function setOriginalSize(h, w) {
+    height0 = h;
+    width0 = w;
+
+    setSize(h, w);
+
+    await delay(5);
+
+    calculateSize();
+}
+
+let focusableEls: Array<HTMLElement>;
 
 export function appendFocusable(ifdoc?: Document) {
 
@@ -222,6 +267,70 @@ function getDocumentWidth(doc) {
     );
 }
 
+let prevActiveEl: HTMLElement | null | undefined;
+
+open = async (origin, url, params = {}) => {
+
+    if (!modal) return;
+
+    prevActiveEl = getActiveElement() as HTMLElement;
+
+    if (!hidden) {
+        return;
+    }
+
+    if ($modals.length) {
+        $modals[$modals.length - 1].hide();
+    }
+
+    if (origin) {
+        $modals.push(origin);
+    }
+
+    if (isBusy) return;
+
+    isBusy = true;
+
+    modal.style.removeProperty('display');
+
+    // prevent double scroll
+    _scrollPosition = window.pageYOffset;
+    document.body.classList.add('body-modal-enabled');
+    document.body.style.top = -_scrollPosition + 'px';
+
+    modal.classList.add('modal-visible');
+
+    isBusy = false;
+    hidden = false;
+    opened = true;
+    modal.hidden = false;
+
+    await delay(25);
+
+    if (!modal) return;
+
+    /**
+     * The filter here is to make sure the selected elements are visible(in the layout).
+     * According to https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/offsetParent, offsetParent returns null when the element has style.
+     * display set to none. (including children elements)
+     */
+    focusableEls = Array.from(
+        modal.querySelectorAll<HTMLElement>(focusableSelector)
+    )
+    .filter(el => !el.hidden);
+
+    document.addEventListener('keydown', keyboardHandler);
+    document.addEventListener('keydown', trapFocus);
+
+    onOpened();
+
+    if (!url) {
+        fitSize(false);
+    }
+
+    modal.focus();
+}
+
 close = (event?: Event) => {
 
     if (!modal) return;
@@ -278,9 +387,6 @@ close = (event?: Event) => {
         loader.hidden = false;
     }
 
-    t1_open = null;
-    t1_fitsize = null;
-
     onClosed();
 
     document.removeEventListener('keydown', keyboardHandler);
@@ -292,178 +398,144 @@ close = (event?: Event) => {
 
 }
 
-let t1_open: number | null;
-let t1_fitsize: number | null;
+let iframeEl: HTMLIFrameElement | null;
 
-open = (origin, url, params) => {
-
-    if (!modal) return;
-
-    prevActiveEl = getActiveElement() as HTMLElement;
-
-    if (!hidden) {
-        return;
-    }
-
-    if ($modals.length) {
-        $modals[$modals.length - 1].hide();
-    }
-
-    if (origin) {
-        $modals.push(origin);
-    }
-
-    if (isBusy) return;
-
-    isBusy = true;
-
-    modal.style.removeProperty('display');
-
-    // prevent double scroll
-    _scrollPosition = window.pageYOffset;
-    document.body.classList.add('body-modal-enabled');
-    document.body.style.top = -_scrollPosition + 'px';
-
-    modal.classList.add('modal-visible');
-
-    isBusy = false;
-    hidden = false;
-    opened = true;
-    modal.hidden = false;
-
-    t1_open = setTimeout(() => {
-
-        if (!modal) return;
-
-        /**
-         * The filter here is to make sure the selected elements are visible(in the layout).
-         * According to https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/offsetParent, offsetParent returns null when the element has style.
-         * display set to none. (including children elements)
-         */
-        focusableEls = Array.from(
-            modal.querySelectorAll<HTMLElement>(focusableSelector)
-        )
-        .filter(el => !el.hidden);
-
-        document.addEventListener('keydown', keyboardHandler);
-        document.addEventListener('keydown', trapFocus);
-
-        onOpened();
-
-        if (!url) {
-            fitSize();
-        }
-
-        modal.focus();
-
-    }, 25);
-}
-
-export function fitSize() {
-
-    if (!modalBox) return;
-
-    iframeEl = contentEl.querySelector('iframe');
-
-    const headerStyles = getComputedStyle(headerEl);
-    const contentStyles = getComputedStyle(contentEl);
-
-    const minHeight = modalBox.clientHeight;
-    const minWidth = modalBox.clientWidth;
-
-    setSize('100%', '100%');
+function iframeSize() {
 
     let ifdocHeight = 0;
     let ifdocWidth = 0;
 
-    t1_fitsize = setTimeout(() => {
+    iframeEl = contentEl.querySelector('iframe');
 
-        if (!modalBox) return;
+    if (!iframeEl || iframeEl.src === 'about:blank') return;
 
-        const headerHeight = headerEl.clientHeight;
-        const headerWidth = headerEl.clientWidth;
-        const toolbarHeight = toolbarEl.clientHeight;
-        const toolbarWidth = toolbarEl.clientWidth;
-        const footerHeight = footerEl.clientHeight;
+    const ifdoc = iframeEl.contentDocument
+        || iframeEl.contentWindow?.document;
 
-        const loader = contentEl.firstElementChild;
+    appendFocusable(ifdoc);
 
-        if (loader instanceof HTMLElement) {
-            loader.hidden = true;
-        }
+    ifdocHeight = getDocumentHeight(ifdoc);
+    ifdocWidth = getDocumentWidth(ifdoc);
 
-        if (iframeEl) {
-            if (iframeEl.src == 'about:blank') return;
+    if (!modalBox) return;
 
-            const ifdoc = iframeEl.contentDocument
-                || iframeEl.contentWindow?.document;
+    iframeEl.height = String(ifdocHeight);
 
-            appendFocusable(ifdoc);
+    if (!iframeEl.width)
+        iframeEl.width = String(ifdocWidth);
 
-            ifdocHeight = getDocumentHeight(ifdoc);
-            ifdocWidth = getDocumentWidth(ifdoc);
-
-            iframeEl.height = String(ifdocHeight);
-            iframeEl.width = String(ifdocWidth);
-
-        }
-
-        const fullHeight = modalBox.clientHeight;
-        const fullWidth = modalBox.clientWidth;
-
-        const contentHeight = contentEl.clientHeight;
-        const contentWidth = contentEl.clientWidth;
-
-        const totalHeight = headerHeight
-            + toolbarHeight
-            + contentHeight
-            + footerHeight
-            + 0;
-
-        const totalWidth = Math.max(
-                headerWidth,
-                toolbarWidth,
-                contentWidth,
-                footerHeight
-            );
-
-        const freeHeight = fullHeight
-            - headerHeight
-            - toolbarHeight
-            - footerHeight
-            - parseFloat(headerStyles.marginTop)
-            - parseFloat(headerStyles.marginBottom)
-            - parseFloat(contentStyles.paddingTop)
-            - parseFloat(contentStyles.paddingBottom)
-            - 0;
-
-        isVScroll = totalHeight > fullHeight;
-        isHScroll = totalWidth > fullWidth;
-
-        if (isVScroll) {
-            contentEl.style.height = (freeHeight) + 'px';
-        } else {
-            modalBox!.style.removeProperty('height');
-        }
-
-        setSize(
-            isVScroll
-                ? 'calc(100% - 8px)'
-                : null,
-
-            isHScroll
-                ? 'calc(100% - 8px)'
-                : /^\d+$/.test(String(width0) ?? '')
-                    ? width0 + 'px'
-                    : width0 || totalWidth
-        );
-
-    }, 25);
 }
 
-export function setSize(h: string | number | null, w: string | number | null) {
-    height = h;
-    width = w;
+function calculateSize() {
+
+    if (!modalBox) return;
+
+    const fullHeight = modalBox.clientHeight;
+    const fullWidth = modalBox.clientWidth;
+
+    const freeHeight = Math.max(
+        headerHeight,
+        fullHeight
+        - contentEl.offsetTop
+        - toolbarHeight
+        - footerHeight
+    );
+
+    minheight = (headerHeight
+        + toolbarHeight
+        + footerHeight
+        + 32
+        ) + 'px';
+
+    isVScroll = totalHeight > fullHeight;
+    if (isVScroll) {
+        contentEl.style.height = (freeHeight) + 'px';
+    } else if (!height0) {
+        modalBox.style.removeProperty('height');
+    }
+    const h = totalHeight < fullHeight ? null : undefined;
+    const w = totalWidth < fullWidth ? null : undefined;
+    setSize(h, w);
+}
+
+let headerHeight: number;
+let headerWidth: number;
+let toolbarHeight: number;
+let toolbarWidth: number;
+let footerHeight: number;
+let footerWidth: number;
+let contentHeight: number;
+let contentWidth: number;
+let totalHeight: number;
+let totalWidth: number;
+
+export async function fitSize(iframeloaded: boolean = false) {
+
+    setSize('100%', '100%');
+
+    await delay(15);
+
+    const loader = contentEl.firstElementChild;
+
+    if (loader instanceof HTMLElement) {
+        loader.hidden = true;
+    }
+
+    headerHeight = headerEl.clientHeight;
+    headerWidth = getContentWidth(headerEl);
+    toolbarHeight = toolbarEl.clientHeight;
+    toolbarWidth = getContentWidth(toolbarEl);
+    footerHeight = footerEl.clientHeight;
+    footerWidth = getContentWidth(footerEl);
+
+    if (iframeloaded) {
+        iframeSize();
+    }
+
+    contentHeight = contentEl.clientHeight;
+    contentWidth = getContentWidth(contentEl);
+
+    totalHeight = contentEl.offsetTop
+        + toolbarHeight
+        + contentHeight
+        + footerHeight
+        + 0;
+
+    totalWidth = Math.max(
+            headerWidth,
+            toolbarWidth,
+            contentWidth,
+            footerWidth
+        );
+
+    setSize(
+        height0
+            ? /^\d+$/.test(String(height0))
+                ? height0 + 'px'
+                : height0
+            : undefined,
+        width0
+            ? /^\d+$/.test(String(width0))
+                ? width0 + 'px'
+                : width0
+            : undefined
+    );
+
+    await delay(15);
+
+    calculateSize();
+}
+
+export function setSize(
+    h: string | number | null | undefined,
+    w: string | number | null | undefined
+) {
+
+    height = h !== undefined ? h : height;
+    width = w !== undefined ? w : width;
+
+    headerStyles = getComputedStyle(headerEl);
+    contentStyles = getComputedStyle(contentEl);
 }
 
 export function setDisabled(v) {
@@ -495,7 +567,9 @@ export function hide() {
 }
 
 export function show() {
+
     if (!modal) return;
+
     hidden = false;
     modal.hidden = false;
 
@@ -507,14 +581,31 @@ export function show() {
     document.body.style.top = -_scrollPosition + 'px';
 
     modal.classList.add('modal-visible');
-
 }
+
+const debounce = (func: (event: Event) => {}, delay: number) => {
+    let timer: number | undefined;
+
+    return function () {
+        const context = this;
+        const args = arguments;
+        clearTimeout(timer);
+        timer = setTimeout(() => func.apply(context, args), delay);
+    };
+};
+
+const windowSizeChanged = debounce(async (event: Event) => {
+
+    if (!opened) return;
+
+    calculateSize();
+
+}, 15);
 
 let headerEl: HTMLElement;
 let toolbarEl: HTMLElement;
 let contentEl: HTMLElement;
 let footerEl: HTMLElement;
-let iframeEl: HTMLIFrameElement | null;
 
 onMount(() => {
 
@@ -525,7 +616,10 @@ onMount(() => {
     contentEl = modalBox.children[2] as HTMLElement;
     footerEl = modalBox.children[3] as HTMLElement;
 
+    window.addEventListener('resize', windowSizeChanged);
+
     return () => {
+        window.removeEventListener('resize', windowSizeChanged);
     };
 
 });
@@ -534,6 +628,8 @@ $effect(() => {
     checkOverflow();
 });
 
+let hasHeader = false
+
 </script>
 
 <div class="tingle-modal"
@@ -541,21 +637,19 @@ $effect(() => {
     bind:this={modal}
     hidden
 >
-
     <div role="dialog"
         bind:this={modalBox}
         aria-modal="true"
         aria-labelledby={arialabelledby}
         aria-describedby={ariadescribedby}
         style={[
-            width != null && `width:${typeof width === 'number' ? `${width}px` : width}`,
-            height != null && `height:${typeof height === 'number' ? `${height}px` : height}`
+            `--minheight: ${minheight}`,
+            height != null && `height: ${typeof height === 'number' ? `${height}px` : height}`,
+            width != null && `width: ${typeof width === 'number' ? `${width}px` : width}`
         ].filter(Boolean).join(';')}
     >
-        <div class="header"
-            class:isVScroll
-            class:isHScroll
-        >
+
+        <div class="header">
 
             {#if !hideXClose}
             <button type="button"
@@ -565,7 +659,7 @@ $effect(() => {
             >×</button>
             {/if}
 
-            {@render header(1, 2)}
+            {@render header?.(1, 2)}
         </div>
 
         <div class="toolbar">
@@ -578,11 +672,11 @@ $effect(() => {
                 <span role="status">Loading, please wait.</span>
             </div>
 
-            {@render content()}
+            {@render content?.()}
         </div>
 
         <div class="footer">
-            {@render footer()}
+            {@render footer?.()}
         </div>
 
     </div>

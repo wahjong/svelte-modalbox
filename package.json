@@ -12,8 +12,7 @@
   "author": "Wah Jong",
   "type": "module",
   "scripts": {
-    "start": "vite dev --open /public/ModalBox.html",
-    "preview": "vite preview --open ModalBox.html",
+    "start": "vite dev --open /modalbox.html",
     "build": "vite build",
     "tsconfig": "tsc --showConfig"
   },

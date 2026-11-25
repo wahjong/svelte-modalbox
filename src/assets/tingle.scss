@@ -24,6 +24,7 @@ $border-focus-color: #000000;
         will-change: transform, opacity;
         max-width: 80%;
         max-height: calc(100dvh - 2rem);
+        min-height: var(--minheight);
 
         .header {
             background-color: transparent;
@@ -81,7 +82,7 @@ $border-focus-color: #000000;
         }
 
         .isVScroll .modal-close {
-            right: 1.25rem;
+            /*right: 1.25rem;*/
         }
 
         h1 {

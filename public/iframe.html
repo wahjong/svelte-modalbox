@@ -9,28 +9,20 @@
 </head>
 
 <body>
-
     <h1>IFRAME</h1>
+
+    <button type="button" class="btn2 btn2-action" onclick="window.parent.modalbox3.setSize(400,400)">window.parent.modalbox3.setSize(400,400)</button>
 
     <button type="button" class="btn2 btn2-action" onclick="window.parent.modalbox1.open()">window.parent.modalbox1.open()</button>
 
-    <div style="background-color:cyan; width:1000px; height:600px;">
+    <div style="background-color:cyan; height:800px; width:800px;">
     </div>
 
     <script>
 
     document.addEventListener("DOMContentLoaded", (event) => {
-        console.log("DOMContentLoaded");
+        console.log("iframe DOMContentLoaded");
     });
-
-    // From iframe → call parent function
-    // iframe (child.html):
-
-    // window.parent.showMessage('Hello from iframe');
-
-    // Access parent DOM
-    // parent.document.getElementById('myInput').value = 'abc';
-    // window.parent.document
 
     </script>
 
