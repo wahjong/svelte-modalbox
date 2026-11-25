@@ -6,12 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>ModalBox</title>
     <link rel="shortcut icon" href="#">
-    <link type="text/css" rel="stylesheet" href="http://localhost:11736/clientlib-site/css/clientlib-uncss.v2.css">
-    <link type="text/css" rel="stylesheet" href="http://localhost:11736/clientlib-site/css/rsvp2.css">
-    <link type="text/css" rel="stylesheet" href="http://localhost:11736/css/event2.css">
-    <link type="text/css" rel="stylesheet" href="http://localhost:11736/css/grid2.css">
-    <link type="text/css" rel="stylesheet" href="http://localhost:11736/css/cms2.css">
-    <link type="text/css" rel="stylesheet" href="http://localhost:11736/css/flex2.css">
     <style>
         iframe {
             vertical-align: top;
@@ -27,9 +21,6 @@
         <button type="button" class="btn2 btn2-action" onclick="modalbox2.open()">modalbox2.open()</button>
         <button type="button" class="btn2 btn2-action" onclick="modalbox3.open('iframe.html', {name: 'CCC', title: 'DDD', width: '50%'})">modalbox3.open('iframe.html', {name: 'CCC', title: 'DDD', width: '50%'})</button>
         <button type="button" class="btn2 btn2-action" onclick="modalbox4.open()">modalbox4.open()</button>
-
-            <!-- data-height="500" -->
-            <!-- data-width="500" -->
         <modalbox
             data-name="modalbox1"
             data-aria-labelledby="id01"
@@ -42,12 +33,6 @@
             <button type="button" class="btn2 btn2-action" onclick="modalbox2.open()">modalbox2.open()</button>
 
         </modalbox>
-
-            <!-- data-height="500" -->
-            <!-- data-height="100%" -->
-            <!-- data-height="calc(100% - 200px)" -->
-            <!-- data-width="calc(100% - 200px)" -->
-            <!-- data-hide-foot-close="true" -->
         <modalbox
             data-name="modalbox2"
             data-aria-labelledby="id02"
@@ -59,11 +44,6 @@
             <button type="button" class="btn2 btn2-action" onclick="modalbox2.setSize(400, 400)">modalbox2..setSize(400, 400)</button>
             <button type="button" class="btn2 btn2-action" onclick="modalbox3.open('iframe.html', {name: 'CCC', title: 'DDD', width: '70%'})">modalbox3.open('iframe.html', {name: 'CCC', title: 'DDD', width: '70%'})</button>
         </modalbox>
-
-            <!-- data-height="500" -->
-            <!-- data-height="100%" -->
-            <!-- data-height="calc(100% - 200px)" -->
-            <!-- data-header-items="1" -->
         <modalbox
             data-name="modalbox3"
             data-aria-labelledby="id03"
@@ -71,7 +51,6 @@
             data-hide-foot-close="false"
             hidden
         >
-            <!-- <h1 id="id03">ModalBox3</h1> -->
             <iframe
                 name="AAA"
                 title="BBB"
