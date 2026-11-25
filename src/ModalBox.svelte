@@ -2,14 +2,14 @@
 import { onMount } from 'svelte';
 import Modal from './Modal.svelte';
 import type ModalBox from './ModalBox.svelte';
-import type { TModalClose, TModalOpen } from './Modal.svelte';
+import type { TModalClose, TModalOpen, ModalParams } from './Modal.svelte';
 
 type Props = {
     ariadescribedby?: string;
     arialabelledby?: string;
     contentholder: HTMLElement;
     disabledEscape: boolean;
-    headerholder: HTMLElement;
+    headerholder?: HTMLElement;
     headerItems: number;
     height?: string;
     hideFootClose: boolean;
@@ -39,11 +39,12 @@ let modal = $state<Modal>();
 
 let ModalOpen = $state<TModalOpen>();
 let ModalClose = $state<TModalClose>();
+let hasHeader = $derived(headerItems > 0 || !hideXClose);
 
 const contents = [...target.children];
 const headers = contents.splice(0, headerItems);
-// console.log('%ccontents', 'background-color:green', contents);
-// console.log('%cheaders', 'background-color:green', headers);
+console.log('%ccontents', 'background-color:green', contents);
+console.log('%cheaders', 'background-color:green', headers);
 
 export function close() {
     console.log('%cModalBox.close', 'background-color:green');
@@ -51,7 +52,7 @@ export function close() {
         ModalClose();
 }
 
-export function open(this: ModalBox, url: string, params) {
+export function open(this: ModalBox, url: string, params: ModalParams = {}) {
     console.log('%cModalBox.open', 'background-color:green', url, params);
 
     if (ModalOpen)
@@ -68,30 +69,36 @@ export function open(this: ModalBox, url: string, params) {
             console.log('%cpaddingRight', 'background-color:orange', contentStyles.paddingRight);
             console.log('%cborderLeftWidth', 'background-color:orange', contentStyles.borderLeftWidth);
 
-            const _width = Number(width)
-                - parseFloat(contentStyles.paddingLeft)
-                - parseFloat(contentStyles.paddingRight);
+            console.log('%ciframe.width:%s, isNaN(Number(iframe.width):%s', 'background-color:purple', iframe.width, isNaN(Number(iframe.width)));
+            console.log('%cparams.width:%s, isNaN(Number(params.width):%s', 'background-color:purple', params.width, isNaN(Number(params.width)));
 
-            console.log('%c_width', 'background-color:blue', _width);
+            const _width = params.width || iframe.width;
+            console.log('%c_width, String(_width)', 'background-color:blue', _width, String(_width));
 
-            iframe.width = String(_width);
+            const _width0 = !_width || isNaN(Number(_width))
+                ? _width
+                : Number(_width)
+                    - parseFloat(contentStyles.paddingLeft)
+                    - parseFloat(contentStyles.paddingRight);
 
+            console.log('%c_width0, String(_width0)', 'background-color:blue', _width0, String(_width0));
+
+            iframe.width = String(_width0);
         }
+
+        if (params.name)
+            iframe.name = params.name;
+
+        if (params.title)
+            iframe.title = params.title;
 
         iframe.src = url;
 
-        if (iframe.name)
-            iframe.name = params.name;
-
-        const title = iframe.title || params.title || '';
-        console.log('%ctitle' , 'background-color:purple', title);
-
-        if (title)
-            iframe.title = title;
-
         iframe.onload = (event) => {
             console.log('%ciframe.onload', 'background-color:green', event);
-            modal!.fitSize();
+            if (!modal) return;
+
+            modal.fitSize(true);
         }
     }
 }
@@ -148,12 +155,15 @@ export function scrollPosition() {
 
 export function setSize(h, w) {
     console.log('%cModalBox.setSize(%s, %s)', 'background-color:green', h, w);
-    modal!.setSize(h, w);
+    modal!.setOriginalSize(h, w);
 }
 
 onMount(() => {
     console.log('%cModalBox.onMount', 'background-color:green');
-    headerholder.append(...headers);
+
+    if (headerholder)
+        headerholder.append(...headers);
+
     contentholder.append(...contents);
 });
 
@@ -165,6 +175,7 @@ onMount(() => {
 <!-- button: {button}, -->
 <!-- contentholder: {contentholder}, -->
 <!-- disabledEscape: {disabledEscape}, -->
+<!-- hasHeader: {hasHeader}, -->
 <!-- headerholder: {headerholder}, -->
 <!-- headerItems: {headerItems}, -->
 <!-- height: {height}, -->
@@ -175,7 +186,6 @@ onMount(() => {
 <!-- width: {width}, -->
 
 <Modal
-
     bind:this={modal}
     bind:open={ModalOpen}
     bind:close={ModalClose}
@@ -193,9 +203,10 @@ onMount(() => {
     {name}
     what='ModalBox'
 >
-
     {#snippet header(a, b)}
+        {#if hasHeader}
         <div bind:this={headerholder}></div>
+        {/if}
     {/snippet}
 
     {#snippet content()}
