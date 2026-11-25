@@ -142,22 +142,6 @@ onMount(() => {
 
 </script>
 
-<!-- ModalBox.svelte -->
-<!-- ariadescribedby: {ariadescribedby}, -->
-<!-- arialabelledby: {arialabelledby}, -->
-<!-- button: {button}, -->
-<!-- contentholder: {contentholder}, -->
-<!-- disabledEscape: {disabledEscape}, -->
-<!-- hasHeader: {hasHeader}, -->
-<!-- headerholder: {headerholder}, -->
-<!-- headerItems: {headerItems}, -->
-<!-- height: {height}, -->
-<!-- hideFootClose: {hideFootClose}, -->
-<!-- hideXClose: {hideXClose}, -->
-<!-- modal: {modal}, -->
-<!-- target: {target}, -->
-<!-- width: {width}, -->
-
 <Modal
     bind:this={modal}
     bind:open={ModalOpen}
